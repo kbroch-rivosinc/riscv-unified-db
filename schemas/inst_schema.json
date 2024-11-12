@@ -146,7 +146,7 @@
     },
     "inst_data": {
       "type": "object",
-      "required": ["long_name", "description", "definedBy", "access", "assembly"],
+      "required": ["name", "long_name", "description", "definedBy", "access", "assembly"],
       "additionalProperties": false,
       "properties": {
         "name": {
