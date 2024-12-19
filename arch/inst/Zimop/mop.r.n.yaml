@@ -1,14 +1,16 @@
 # yaml-language-server: $schema=../../../schemas/inst_schema.json
 
-mop.r.n:
-  long_name: No synopsis available.
-  description: |
-      No description available.
-  definedBy: Zimop
-  assembly: mop_r_t_30, mop_r_t_27_26, mop_r_t_21_20, xd, xs1
-  encoding:
-    match: 1-00--0111-------100-----1110011
-    variables:
+$schema: "inst_schema.json#"
+kind: instruction
+name: mop.r.n
+long_name: No synopsis available.
+description: |
+  No description available.
+definedBy: Zimop
+assembly: mop_r_t_30, mop_r_t_27_26, mop_r_t_21_20, xd, xs1
+encoding:
+  match: 1-00--0111-------100-----1110011
+  variables:
     - name: mop_r_t_30
       location: 30-30
     - name: mop_r_t_27_26
@@ -19,13 +21,13 @@ mop.r.n:
       location: 19-15
     - name: rd
       location: 11-7
-  access:
-    s: always
-    u: always
-    vs: always
-    vu: always
-  data_independent_timing: false
-  pseudoinstructions:
+access:
+  s: always
+  u: always
+  vs: always
+  vu: always
+data_independent_timing: false
+pseudoinstructions:
   - when: (mop_r_t_30 == 0x0) && (mop_r_t_21_20 == 0x0) && (mop_r_t_27_26 == 0x0)
     to: mop.r.0
   - when: (mop_r_t_30 == 0x0) && (mop_r_t_21_20 == 0x1) && (mop_r_t_27_26 == 0x0)
@@ -90,5 +92,4 @@ mop.r.n:
     to: mop.r.30
   - when: (mop_r_t_30 == 0x1) && (mop_r_t_21_20 == 0x3) && (mop_r_t_27_26 == 0x3)
     to: mop.r.31
-  operation(): |
-      
+operation(): |

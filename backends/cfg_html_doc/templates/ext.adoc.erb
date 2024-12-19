@@ -2,28 +2,31 @@
 = <%= ext.name %> Extension
 <%= ext.long_name %>
 
-Implemented Version:: <%= ext_version.version %>
+Implemented Version:: <%= ext_version.version_str %>
 
 == Versions
 
 <%- ext.versions.each do |v| -%>
-<%- implemented = arch_def.implemented_extensions.include?(ExtensionVersion.new(ext.name, v["version"])) -%>
-<%= v["version"] %>::
+<%- implemented = cfg_arch.transitive_implemented_extensions.include?(v) -%>
+<%= v.version_str %>::
   Ratification date:::
-    <%= v["ratification_date"] %>
-  <%- if v.key?("changes") -%>
+    <%= v.ratification_date %>
+  <%- unless v.changes.empty? -%>
   Changes:::
-    <%= v["changes"] %>
+
+    <% v.changes.each do |c| -%>
+    * <%= c %>
+    <% end -%>
+
   <%- end -%>
-  <%- if v.key?("url") -%>
+  <%- unless v.url.nil? -%>
   Ratification document:::
-    <%= v["url"] %>
+    <%= v.url %>
   <%- end -%>
-  <%- if v.key?("implies") -%>
+  <%- unless v.implications.empty? -%>
   Implies:::
-    <%- implications = v["implies"][0].is_a?(Array) ? v["implies"] : [v["implies"]] -%>
-    <%- implications.each do |i| -%>
-    * `<%= i[0] %>` version <%= i[1] %>
+    <%- v.implications.each do |i| -%>
+    * `<%= i.name %>` version <%= i.version_str %>
     <%- end -%>
   <%- end -%>
 <%- end -%>
@@ -32,11 +35,11 @@ Implemented Version:: <%= ext_version.version %>
 
 <%= ext.description %>
 
-<%- insts = arch_def.implemented_instructions.select { |i| i.definedBy == ext.name || i.definedBy.include?(ext.name) } -%>
+<%- insts = cfg_arch.transitive_implemented_instructions.select { |i| i.definedBy == ext.name || i.definedBy.include?(ext.name) } -%>
 <%- unless insts.empty? -%>
 == Instructions
 
-The following instructions are added by this extension in the <%= ext.arch_def.name %> configuration:
+The following instructions are added by this extension in the <%= ext.cfg_arch.name %> configuration:
 
 [cols="1,3"]
 |===

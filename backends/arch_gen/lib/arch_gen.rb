@@ -8,7 +8,7 @@ require "rubygems/requirement"
 require "tilt"
 
 require_relative "#{$lib}/validate"
-require_relative "#{$lib}/arch_def"
+require_relative "#{$lib}/cfg_arch"
 
 $root = Pathname.new(__FILE__).dirname.dirname.realpath if $root.nil?
 
@@ -53,8 +53,8 @@ class ArchGen
       ext_name = ext["name"]
       gen_ext_path = @gen_dir / "arch" / "ext" / "#{ext_name}.yaml"
       ext_yaml = YAML.load_file gen_ext_path.to_s
-      unless ext_yaml[ext_name]["params"].nil?
-        ext_yaml[ext_name]["params"].each do |param_name, param_data|
+      unless ext_yaml["params"].nil?
+        ext_yaml["params"].each do |param_name, param_data|
           schema["properties"]["params"]["required"] << param_name
           schema["properties"]["params"]["properties"][param_name] = {
             "description" => param_data["description"]
@@ -147,8 +147,8 @@ class ArchGen
       ext_name = ext["name"]
       gen_ext_path = @gen_dir / "arch" / "ext" / "#{ext_name}.yaml"
       ext_yaml = YAML.load_file gen_ext_path.to_s
-      unless ext_yaml[ext_name]["params"].nil?
-        ext_yaml[ext_name]["params"].each do |param_name, param_data|
+      unless ext_yaml["params"].nil?
+        ext_yaml["params"].each do |param_name, param_data|
           next unless param_data.key?("extra_validation")
           begin
             eval_context.class_eval param_data["extra_validation"]
@@ -165,7 +165,7 @@ class ArchGen
   private :params_extra_validation
 
   # validate the params.yaml file of a config.
-  # 
+  #
   # This does several things:
   #
   #  * Generates a config-specific schmea based on:
@@ -201,7 +201,7 @@ class ArchGen
 
     gen_inst_def
 
-    gen_arch_def
+    gen_cfg_arch
 
     @generate_done = true
   end
@@ -272,50 +272,40 @@ class ArchGen
 
   # Generate the config-specific, unified architecture spec data structure
   #
-  def gen_arch_def
-    csr_hash = Dir.glob(@gen_dir / "arch" / "csr" / "**" / "*.yaml").map do |f|
-      csr_obj = YamlLoader.load(f, permitted_classes:[Date])
-      csr_name = csr_obj.keys[0]
-      [csr_name, csr_obj[csr_name]]
-    end.to_h
-    inst_hash = Dir.glob(@gen_dir / "arch" / "inst" / "**" / "*.yaml").map do |f|
-      inst_obj = YamlLoader.load(f, permitted_classes:[Date])
-      inst_name = inst_obj.keys[0]
-      [inst_name, inst_obj[inst_name]]
-    end.to_h
-    ext_hash = Dir.glob(@gen_dir / "arch" / "ext" / "**" / "*.yaml").map do |f|
-      ext_obj = YamlLoader.load(f, permitted_classes:[Date])
-      ext_name = ext_obj.keys[0]
-      [ext_name, ext_obj[ext_name]]
-    end.to_h
+  def gen_cfg_arch
+    csr_ary = Dir.glob(@gen_dir / "arch" / "csr" / "**" / "*.yaml").map do |f|
+      YamlLoader.load(f, permitted_classes:[Date])
+    end
+    inst_ary = Dir.glob(@gen_dir / "arch" / "inst" / "**" / "*.yaml").map do |f|
+      YamlLoader.load(f, permitted_classes:[Date])
+    end
+    ext_ary = Dir.glob(@gen_dir / "arch" / "ext" / "**" / "*.yaml").map do |f|
+      YamlLoader.load(f, permitted_classes:[Date])
+    end
     profile_class_hash = Dir.glob($root / "arch" / "profile_class" / "**" / "*.yaml").map do |f|
       profile_class_obj = YamlLoader.load(f, permitted_classes:[Date])
       profile_class_name = profile_class_obj.keys[0]
       profile_class_obj[profile_class_name]["name"] = profile_class_name
-      profile_class_obj[profile_class_name]["__source"] = f
+      profile_class_obj[profile_class_name]["$source"] = f
       [profile_class_name, profile_class_obj[profile_class_name]]
     end.to_h
     profile_release_hash = Dir.glob($root / "arch" / "profile_release" / "**" / "*.yaml").map do |f|
       profile_release_obj = YamlLoader.load(f, permitted_classes:[Date])
       profile_release_name = profile_release_obj.keys[0]
       profile_release_obj[profile_release_name]["name"] = profile_release_name
-      profile_release_obj[profile_release_name]["__source"] = f
+      profile_release_obj[profile_release_name]["$source"] = f
       [profile_release_name, profile_release_obj[profile_release_name]]
     end.to_h
-    cert_class_hash = Dir.glob($root / "arch" / "certificate_class" / "**" / "*.yaml").map do |f|
+    cert_class_ary = Dir.glob($root / "arch" / "certificate_class" / "**" / "*.yaml").map do |f|
       cert_class_obj = YamlLoader.load(f, permitted_classes:[Date])
-      cert_class_name = cert_class_obj.keys[0]
-      cert_class_obj[cert_class_name]["name"] = cert_class_name
-      cert_class_obj[cert_class_name]["__source"] = f
-      [cert_class_name, cert_class_obj[cert_class_name]]
-    end.to_h
-    cert_model_hash = Dir.glob($root / "arch" / "certificate_model" / "**" / "*.yaml").map do |f|
+      cert_class_obj["$source"] = f
+      cert_class_obj
+    end
+    cert_model_ary = Dir.glob($root / "arch" / "certificate_model" / "**" / "*.yaml").map do |f|
       cert_model_obj = YamlLoader.load(f, permitted_classes:[Date])
-      cert_model_name = cert_model_obj.keys[0]
-      cert_model_obj[cert_model_name]["name"] = cert_model_name
-      cert_model_obj[cert_model_name]["__source"] = f
-      [cert_model_name, cert_model_obj[cert_model_name]]
-    end.to_h
+      cert_model_obj["$source"] = f
+      cert_model_obj
+    end
     manual_hash = {}
     Dir.glob($root / "arch" / "manual" / "**" / "contents.yaml").map do |f|
       manual_version = YamlLoader.load(f, permitted_classes:[Date])
@@ -324,53 +314,53 @@ class ArchGen
         manual_info_files = Dir.glob($root / "arch" / "manual" / "**" / "#{manual_id}.yaml")
         raise "Could not find manual info '#{manual_id}'.yaml, needed by #{f}" if manual_info_files.empty?
         raise "Found multiple manual infos '#{manual_id}'.yaml, needed by #{f}" if manual_info_files.size > 1
-  
+
         manual_info_file = manual_info_files.first
         manual_hash[manual_id] = YamlLoader.load(manual_info_file, permitted_classes:[Date])
-        manual_hash[manual_id]["__source"] = manual_info_file
+        manual_hash[manual_id]["$source"] = manual_info_file
         # TODO: schema validation
       end
-  
+
       manual_hash[manual_id]["versions"] ||= []
       manual_hash[manual_id]["versions"] << YamlLoader.load(f, permitted_classes:[Date])
       # TODO: schema validation
-      manual_hash[manual_id]["versions"].last["__source"] = f
+      manual_hash[manual_id]["versions"].last["$source"] = f
     end
 
-    arch_def = {
+    cfg_arch = {
       "type" => @cfg_opts["type"],
       "params" => params,
-      "instructions" => inst_hash,
+      "instructions" => inst_ary,
       "implemented_instructions" => @implemented_instructions,
-      "extensions" => ext_hash,
+      "extensions" => ext_ary,
       "implemented_extensions" => @implemented_extensions,
-      "csrs" => csr_hash,
+      "csrs" => csr_ary,
       "implemented_csrs" => @implemented_csrs,
       "profile_classes" => profile_class_hash,
       "profile_releases" => profile_release_hash,
-      "certificate_classes" => cert_class_hash,
-      "certificate_models" => cert_model_hash,
+      "certificate_classes" => cert_class_ary,
+      "certificate_models" => cert_model_ary,
       "manuals" => manual_hash
     }
 
-    yaml = YAML.dump(arch_def)
-    arch_def_yaml = "# yaml-language-server: $schema=../../../arch/arch_schema.json\n\n#{yaml}"
-    abs_arch_def_path = @gen_dir / "arch" / "arch_def.yaml"
+    yaml = YAML.dump(cfg_arch)
+    cfg_arch_yaml = "# yaml-language-server: $schema=../../../arch/arch_schema.json\n\n#{yaml}"
+    abs_cfg_arch_path = @gen_dir / "arch" / "cfg_arch.yaml"
 
-    # return early if this arch_def hasn't changed
-    # return if abs_arch_def_path.exist? && (abs_arch_def_path.read == arch_def_yaml)
+    # return early if this cfg_arch hasn't changed
+    # return if abs_cfg_arch_path.exist? && (abs_cfg_arch_path.read == cfg_arch_yaml)
 
-    File.write(abs_arch_def_path, arch_def_yaml)
+    File.write(abs_cfg_arch_path, cfg_arch_yaml)
 
     # make sure it passes validation
     # begin
-    #   @validator.validate_str(YAML.dump(arch_def), type: :arch)
+    #   @validator.validate_str(YAML.dump(cfg_arch), type: :arch)
     # rescue Validator::SchemaValidationError => e
-    #   warn "While validating the unified architecture defintion at #{abs_arch_def_path}"
+    #   warn "While validating the unified architecture defintion at #{abs_cfg_arch_path}"
     #   raise e
     # end
   end
-  private :gen_arch_def
+  private :gen_cfg_arch
 
   # @return [Object] An object that has a method (lowercase) or constant (uppercase) for every config option
   #                  so that obj.param_name or obj.PARAM_NAME gets you the value
@@ -630,12 +620,11 @@ class ArchGen
       end
 
     # get the csr data (not including the name key), which is redundant at this point
-    csr_data = YAML.load_file(merged_path)[csr_name]
-    csr_data["name"] = csr_name
+    csr_data = YAML.load_file(merged_path)
     csr_data["fields"].each { |n, f| f["name"] = n }
-    csr_data["__source"] = og_path.to_s
+    csr_data["$source"] = og_path.to_s
 
-    csr_yaml = YAML.dump({ csr_name => csr_data})
+    csr_yaml = YAML.dump(csr_data)
     begin
       csr_data = @validator.validate_str(csr_yaml, type: :csr)
     rescue Validator::SchemaValidationError => e
@@ -643,20 +632,20 @@ class ArchGen
       raise e
     end
 
-    csr_obj = Csr.new(csr_data[csr_name])
-    arch_def_mock = Object.new
-    arch_def_mock.define_singleton_method(:fully_configured?) { true }
+    csr_obj = Csr.new(csr_data)
+    cfg_arch_mock = Object.new
+    cfg_arch_mock.define_singleton_method(:fully_configured?) { true }
     pos_xlen_local = possible_xlens
-    arch_def_mock.define_singleton_method(:possible_xlens) do
+    cfg_arch_mock.define_singleton_method(:possible_xlens) do
       pos_xlen_local
     end
-    impl_ext = @cfg_impl_ext.map { |e| ExtensionVersion.new(e[0], e[1]) }
-    arch_def_mock.define_singleton_method(:implemented_extensions) do
+    impl_ext = @cfg_impl_ext.map { |e| ExtensionVersion.new(e[0], e[1], nil) }
+    cfg_arch_mock.define_singleton_method(:implemented_extensions) do
       impl_ext
     end
     belongs =
-      csr_obj.exists_in_cfg?(arch_def_mock)
-  
+      csr_obj.exists_in_cfg?(cfg_arch_mock)
+
 
     @implemented_csrs ||= []
     @implemented_csrs << csr_name if belongs
@@ -714,10 +703,9 @@ class ArchGen
     merged_path = gen_merged_def(:ext, arch_path, arch_overlay_path)
 
     yaml_contents = YAML.load_file(merged_path)
-    raise "In #{merged_path}, key does not match file name" unless yaml_contents.key?(ext_name)
+    raise "In #{merged_path}, key does not match file name" unless yaml_contents["name"] == ext_name
 
-    ext_obj = yaml_contents[ext_name]
-    ext_obj["name"] = ext_name
+    ext_obj = yaml_contents
 
     @implied_ext_map ||= {}
     @required_ext_map ||= {}
@@ -764,7 +752,7 @@ class ArchGen
 
     gen_ext_path = @gen_dir / "arch" / "ext" / "#{ext_name}.yaml"
     FileUtils.mkdir_p gen_ext_path.dirname
-    gen_ext_path.write YAML.dump({ ext_name => ext_obj })
+    gen_ext_path.write YAML.dump(ext_obj)
   end
   private :maybe_add_ext
 
@@ -876,13 +864,9 @@ class ArchGen
 
     # get the inst data (not including the name key), which is redundant at this point
     inst_data = YAML.load_file(merged_path)
-    raise "The first and only key of #{arch_path} must be '#{inst_name}" unless inst_data.key?(inst_name)
-    inst_data = inst_data[inst_name]
+    inst_data["$source"] = og_path.to_s
 
-    inst_data["name"] = inst_name
-    inst_data["__source"] = og_path.to_s
-
-    inst_yaml = YAML.dump({ inst_name => inst_data})
+    inst_yaml = YAML.dump(inst_data)
     begin
       inst_data = @validator.validate_str(inst_yaml, type: :inst)
     rescue Validator::SchemaValidationError => e
@@ -890,7 +874,7 @@ class ArchGen
       raise e
     end
 
-    inst_obj = Instruction.new(inst_data[inst_name], nil)
+    inst_obj = Instruction.new(inst_data, nil)
     possible_xlens = [params["XLEN"]]
     if @cfg_impl_ext.any? { |e| e[0] == "S" }
       possible_xlens << 32 if [32, 3264].include?(params["SXLEN"])
@@ -906,15 +890,15 @@ class ArchGen
       possible_xlens << 64 if [64, 3264].include?(params["VSXLEN"])
       possible_xlens << 64 if [64, 3264].include?(params["VUXLEN"])
     end
-    arch_def_mock = Object.new
-    arch_def_mock.define_singleton_method(:fully_configured?) { true }
-    arch_def_mock.define_singleton_method(:possible_xlens) { possible_xlens }
-    impl_ext = @cfg_impl_ext.map { |e| ExtensionVersion.new(e[0], e[1]) }
-    arch_def_mock.define_singleton_method(:implemented_extensions) do
+    cfg_arch_mock = Object.new
+    cfg_arch_mock.define_singleton_method(:fully_configured?) { true }
+    cfg_arch_mock.define_singleton_method(:possible_xlens) { possible_xlens }
+    impl_ext = @cfg_impl_ext.map { |e| ExtensionVersion.new(e[0], e[1], nil) }
+    cfg_arch_mock.define_singleton_method(:implemented_extensions) do
       impl_ext
     end
     belongs =
-      inst_obj.exists_in_cfg?(arch_def_mock)
+      inst_obj.exists_in_cfg?(cfg_arch_mock)
 
     @implemented_instructions ||= []
     @implemented_instructions << inst_name if belongs
@@ -923,11 +907,6 @@ class ArchGen
     gen_inst_path = @gen_dir / "arch" / "inst" / inst_obj.primary_defined_by / "#{inst_name}.yaml"
     FileUtils.mkdir_p gen_inst_path.dirname
     gen_inst_path.write inst_yaml
-
-
-    # @instructions << inst_def
-    # @inst_hash ||= {}
-    # @inst_hash[inst_name] = @instructions.last
   end
   private :maybe_add_inst
 

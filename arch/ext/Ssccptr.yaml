@@ -1,14 +1,16 @@
 # yaml-language-server: $schema=../../schemas/ext_schema.json
 
-Ssccptr:
-  long_name: Cacheable and coherent main memory page table reads
-  description: |
-    Main memory regions with both the cacheability and coherence PMAs must support hardware page-table reads.
+$schema: "ext_schema.json#"
+kind: extension
+name: Ssccptr
+long_name: Cacheable and coherent main memory page table reads
+description: |
+  Main memory regions with both the cacheability and coherence PMAs must support hardware page-table reads.
 
-    [NOTE]
-    This extension was ratified with the RVA20 profiles.
-  type: privileged
-  versions:
+  [NOTE]
+  This extension was ratified with the RVA20 profiles.
+type: privileged
+versions:
   - version: "1.0.0"
     state: ratified
     ratification_date: null
@@ -17,5 +19,5 @@ Ssccptr:
       - url: https://github.com/riscv/riscv-profiles
         branch: main
     contributors:
-    - name: Krste Asanovic
-      company: SiFive, Inc.
+      - name: Krste Asanovic
+        company: SiFive, Inc.

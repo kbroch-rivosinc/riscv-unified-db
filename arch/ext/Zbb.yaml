@@ -1,14 +1,16 @@
 # yaml-language-server: $schema=../../schemas/ext_schema.json
 
-Zbb:
-  long_name: Basic bit manipulation
-  description: |
-    Basic bit manipulation
-  type: unprivileged
-  company:
-    name: RISC-V International
-    url: https://riscv.org
-  versions:
+$schema: "ext_schema.json#"
+kind: extension
+name: Zbb
+long_name: Basic bit manipulation
+description: |
+  Basic bit manipulation
+type: unprivileged
+company:
+  name: RISC-V International
+  url: https://riscv.org
+versions:
   - version: "1.0.0"
     state: ratified
     ratification_date: 2021-06

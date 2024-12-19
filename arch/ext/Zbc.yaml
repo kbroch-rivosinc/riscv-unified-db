@@ -1,14 +1,16 @@
 # yaml-language-server: $schema=../../schemas/ext_schema.json
 
-Zbc:
-  long_name: Carry-less multiplication scalar instructions
-  description: |
-    Carry-less multiplication is the multiplication in the polynomial ring over GF(2).
-  type: unprivileged
-  company:
-    name: RISC-V International
-    url: https://riscv.org
-  versions:
+$schema: "ext_schema.json#"
+kind: extension
+name: Zbc
+long_name: Carry-less multiplication scalar instructions
+description: |
+  Carry-less multiplication is the multiplication in the polynomial ring over GF(2).
+type: unprivileged
+company:
+  name: RISC-V International
+  url: https://riscv.org
+versions:
   - version: "1.0.0"
     state: ratified
     ratification_date: 2021-06
@@ -47,5 +49,3 @@ Zbc:
       - name: Andrew Waterman
       - name: Thomas Wicki
       - name: Claire Wolf
-
-

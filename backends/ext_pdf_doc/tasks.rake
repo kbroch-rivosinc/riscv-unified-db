@@ -55,6 +55,7 @@ rule %r{#{$root}/gen/ext_pdf_doc/.*/pdf/.*_extension\.pdf} => proc { |tname|
   config_name = Pathname.new(tname).relative_path_from("#{$root}/gen/ext_pdf_doc").to_s.split("/")[0]
   ext_name = Pathname.new(tname).basename(".pdf").to_s.split("_")[0..-2].join("_")
   [
+    ENV["THEME"],
     "#{$root}/ext/docs-resources/themes/riscv-pdf.yml",
     "#{$root}/gen/ext_pdf_doc/#{config_name}/adoc/#{ext_name}_extension.adoc"
   ]
@@ -70,7 +71,7 @@ rule %r{#{$root}/gen/ext_pdf_doc/.*/pdf/.*_extension\.pdf} => proc { |tname|
     "-v",
     "-a toc",
     "-a compress",
-    "-a pdf-theme=#{$root}/ext/docs-resources/themes/riscv-pdf.yml",
+    "-a pdf-theme=#{ENV['THEME']}",
     "-a pdf-fontsdir=#{$root}/ext/docs-resources/fonts",
     "-a imagesdir=#{$root}/ext/docs-resources/images",
     "-r asciidoctor-diagram",
@@ -120,10 +121,7 @@ rule %r{#{$root}/gen/ext_pdf_doc/.*/adoc/.*_extension\.adoc} => proc { |tname|
     end
   raise "Can't find extension '#{ext_name}'" if arch_yaml_paths.empty?
 
-  stamp = config_name == "_" ? "#{$root}/.stamps/arch-gen-_64.stamp" : "#{$root}/.stamps/arch-gen-#{config_name}.stamp"
-
   [
-    stamp,
     (EXT_PDF_DOC_DIR / "templates" / "ext_pdf.adoc.erb").to_s,
     arch_yaml_paths,
     __FILE__
@@ -131,12 +129,7 @@ rule %r{#{$root}/gen/ext_pdf_doc/.*/adoc/.*_extension\.adoc} => proc { |tname|
 } do |t|
   config_name = Pathname.new(t.name).relative_path_from("#{$root}/gen/ext_pdf_doc").to_s.split("/")[0]
 
-  arch_def =
-    if config_name == "_"
-      arch_def_for("_64")
-    else
-      arch_def_for(config_name)
-    end
+  cfg_arch = cfg_arch_for(config_name)
 
   ext_name = Pathname.new(t.name).basename(".adoc").to_s.split("_")[0..-2].join("_")
 
@@ -144,16 +137,23 @@ rule %r{#{$root}/gen/ext_pdf_doc/.*/adoc/.*_extension\.adoc} => proc { |tname|
   erb = ERB.new(template_path.read, trim_mode: "-")
   erb.filename = template_path.to_s
 
-  ext = arch_def.extension(ext_name)
-  version_num =
-    if ENV.key?("EXT_VERSION")
-      ENV["EXT_VERSION"]
+  ext = cfg_arch.extension(ext_name)
+  version_strs = ENV["VERSION"].split(",")
+  versions =
+    if version_strs.include?("all")
+      ext.versions
     else
-      ext.versions.max { |a, b| Gem::Version.new(a["version"]) <=> Gem::Version.new(b["version"]) }["version"]
+      vs = ext.versions.select do |ext_ver|
+        version_strs.any? { |v| v != "latest" && ext_ver.version_spec == VersionSpec.new(v) }
+      end
+      vs << ext.max_version if version_strs.include?("latest")
+      vs.uniq
     end
-  ext_version = ext.versions.find { |v| v["version"] == version_num }
+  raise "No version matches #{ENV['VERSION']}" if versions.empty?
+
+  max_version = versions.max { |a, b| a.version <=> b.version }
   FileUtils.mkdir_p File.dirname(t.name)
-  File.write t.name, AsciidocUtils.resolve_links(arch_def.find_replace_links(erb.result(binding)))
+  File.write t.name, AsciidocUtils.resolve_links(cfg_arch.find_replace_links(erb.result(binding)))
 end
 
 namespace :gen do
@@ -161,25 +161,43 @@ namespace :gen do
     Generate PDF documentation for :extension
 
     If the extension is custom (from an arch_overlay), also give the config name
+
+    Options:
+
+     * EXT - The extension name
+     * CFG - The config name, required only when an overlay is required
+     * VERSION - A list of versions to include. May also be "all" or "latest".
+     * THEME - path to an AsciidocPDF theme file. If not set, will use default RVI theme.
+
+    Examples:
+
+     ./do gen:ext_pdf EXT=Xqci CFG=qc_iu VERSION=latest THEME=cfgs/qc_iu/qc_theme.yaml
+     ./do gen:ext_pdf EXT=B VERSION=all
+     ./do gen:ext_pdf EXT=B VERSION=1.0.0
+     ./do gen:ext_pdf EXT=B VERSION=1.0.0,1.1.0
+
   DESC
-  task :ext_pdf, [:extension] do |_t, args|
-    extension = args[:extension]
+  task :ext_pdf do
+    raise ArgumentError, "Missing required argument EXT" if ENV["EXT"].nil?
 
-    Rake::Task[$root / "gen" / "ext_pdf_doc" / "_" / "pdf" / "#{extension}_extension.pdf"].invoke
-  end
+    extension = ENV["EXT"]
+    cfg = ENV["CFG"]
+    version = ENV["VERSION"]
+    ENV["THEME"] =
+      if ENV["THEME"].nil?
+        "#{$root}/ext/docs-resources/themes/riscv-pdf.yml"
+      else
+        Pathname.new(ENV["THEME"]).realpath.to_s
+      end
 
-  desc <<~DESC
-    Generate PDF documentation for :extension that is defined or overlayed in :cfg
+    versions = version.split(",")
+    raise ArgumentError, "Nothing else should be specified with 'all'" if versions.include?("all") && versions.size > 1
 
-    The latest version will be used, but can be overloaded by setting the EXT_VERSION environment variable.
-  DESC
-  task :cfg_ext_pdf, [:extension, :cfg] do |_t, args|
-    raise ArgumentError, "Missing required argument :extension" if args[:extension].nil?
-    raise ArgumentError, "Missing required argument :cfg" if args[:cfg].nil?
-
-    extension = args[:extension]
-
-    Rake::Task[$root / "gen" / "ext_pdf_doc" / args[:cfg] / "pdf" / "#{extension}_extension.pdf"].invoke(args)
+    if cfg.nil?
+      Rake::Task[$root / "gen" / "ext_pdf_doc" / "_" / "pdf" / "#{extension}_extension.pdf"].invoke
+    else
+      Rake::Task[$root / "gen" / "ext_pdf_doc" / cfg / "pdf" / "#{extension}_extension.pdf"].invoke
+    end
   end
 
   desc <<~DESC

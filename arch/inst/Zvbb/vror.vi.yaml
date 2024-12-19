@@ -1,15 +1,17 @@
 # yaml-language-server: $schema=../../../schemas/inst_schema.json
 
-vror.vi:
-  long_name: No synopsis available.
-  description: |
-      No description available.
-  definedBy:
-    anyOf: [Zvbb, Zvkn, Zvks]
-  assembly: vm, vs2, vd, imm
-  encoding:
-    match: 01010------------011-----1010111
-    variables:
+$schema: "inst_schema.json#"
+kind: instruction
+name: vror.vi
+long_name: No synopsis available.
+description: |
+  No description available.
+definedBy:
+  anyOf: [Zvbb, Zvkn, Zvks]
+assembly: vm, vs2, vd, imm
+encoding:
+  match: 01010------------011-----1010111
+  variables:
     - name: imm
       location: 26|19-15
     - name: vm
@@ -18,11 +20,10 @@ vror.vi:
       location: 24-20
     - name: vd
       location: 11-7
-  access:
-    s: always
-    u: always
-    vs: always
-    vu: always
-  data_independent_timing: false
-  operation(): |
-      
+access:
+  s: always
+  u: always
+  vs: always
+  vu: always
+data_independent_timing: true
+operation(): |

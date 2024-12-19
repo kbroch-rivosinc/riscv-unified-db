@@ -1,14 +1,16 @@
 # yaml-language-server: $schema=../../../schemas/inst_schema.json
 
-amocas.h:
-  long_name: No synopsis available.
-  description: |
-      No description available.
-  definedBy: Zabha
-  assembly: xd, xs1, xs2, aq, rl
-  encoding:
-    match: 00101------------001-----0101111
-    variables:
+$schema: "inst_schema.json#"
+kind: instruction
+name: amocas.h
+long_name: No synopsis available.
+description: |
+  No description available.
+definedBy: Zabha
+assembly: xd, xs1, xs2, aq, rl
+encoding:
+  match: 00101------------001-----0101111
+  variables:
     - name: aq
       location: 26-26
     - name: rl
@@ -19,11 +21,10 @@ amocas.h:
       location: 19-15
     - name: rd
       location: 11-7
-  access:
-    s: always
-    u: always
-    vs: always
-    vu: always
-  data_independent_timing: false
-  operation(): |
-      
+access:
+  s: always
+  u: always
+  vs: always
+  vu: always
+data_independent_timing: false
+operation(): |

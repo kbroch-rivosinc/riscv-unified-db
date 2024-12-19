@@ -1,10 +1,12 @@
 # yaml-language-server: $schema=../../schemas/ext_schema.json
 
-Ssccfg:
-  long_name: Supervisor-mode counter configuration
-  description: Supervisor-mode counter configuration
-  type: privileged
-  versions:
+$schema: "ext_schema.json#"
+kind: extension
+name: Ssccfg
+long_name: Supervisor-mode counter configuration
+description: Supervisor-mode counter configuration
+type: privileged
+versions:
   - version: "1.0.0"
     state: ratified
     ratification_date: null

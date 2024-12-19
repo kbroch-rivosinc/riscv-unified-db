@@ -1,20 +1,22 @@
 # yaml-language-server: $schema=../../schemas/ext_schema.json
 
-Sstvala:
-  long_name: "`stval` requirements for RVA profiles"
-  description: |
-    `stval` must be written with the faulting virtual address for load, store,
-    and instruction page-fault, access-fault, and misaligned exceptions,
-    and for breakpoint exceptions other than those caused by execution of the
-    `ebreak` or `c.ebreak instructions.
-    
-    For virtual-instruction and illegal-instruction exceptions,
-    `stval` must be written with the faulting instruction.
+$schema: "ext_schema.json#"
+kind: extension
+name: Sstvala
+long_name: "`stval` requirements for RVA profiles"
+description: |
+  `stval` must be written with the faulting virtual address for load, store,
+  and instruction page-fault, access-fault, and misaligned exceptions,
+  and for breakpoint exceptions other than those caused by execution of the
+  `ebreak` or `c.ebreak instructions.
 
-    [NOTE]
-    This extension was ratified with the RVA20 profiles.
-  type: privileged
-  versions:
+  For virtual-instruction and illegal-instruction exceptions,
+  `stval` must be written with the faulting instruction.
+
+  [NOTE]
+  This extension was ratified with the RVA20 profiles.
+type: privileged
+versions:
   - version: "1.0.0"
     state: ratified
     ratification_date: null
@@ -23,8 +25,8 @@ Sstvala:
       - url: https://github.com/riscv/riscv-profiles
         branch: main
     contributors:
-    - name: Krste Asanovic
-      company: SiFive, Inc.
+      - name: Krste Asanovic
+        company: SiFive, Inc.
     param_constraints:
       REPORT_VA_IN_STVAL_ON_BREAKPOINT:
         schema:

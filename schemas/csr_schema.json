@@ -164,12 +164,33 @@
     },
     "csr_register": {
       "type": "object",
-      "required": ["long_name", "length", "description", "priv_mode", "definedBy"],
+      "required": [
+        "$schema",
+        "kind",
+        "name",
+        "long_name",
+        "length",
+        "description",
+        "priv_mode",
+        "definedBy"
+      ],
 
       "properties": {
+        "$schema": {
+          "type": "string",
+          "format": "uri-reference",
+          "const": "csr_schema.json#",
+          "description": "Path to schema, relative to <UDB ROOT>/schemas"
+        },
+        "kind": {
+          "type": "string",
+          "const": "csr",
+          "description": "Object type"
+        },
         "name": {
           "type": "string",
-          "description": "Optional name (name is extracted from object key of parent), so information is redundant"
+          "pattern": "^[a-z][a-z0-9_.]+$",
+          "description": "CSR name"
         },
         "base": {
           "type": "integer",
@@ -181,8 +202,23 @@
           "description": "Descriptive name for the CSR"
         },
         "description": {
-          "type": "string",
-          "description": "A full Asciidoc description of the CSR, intended to be used as documentation."
+          "oneOf": [
+            {
+              "type": "string",
+              "description": "A full Asciidoc description of the CSR, intended to be used as documentation."
+            },
+            {
+              "type": "object",
+              "description": "A full Asciidoc description of the CSR, intended to be used as documentation.",
+              "properties": {
+                "$copy": {
+                  "type": "string",
+                  "format": "uri-reference"
+                }
+              },
+              "additionalProperties": false
+            }
+          ]
         },
         "definedBy": {
           "$ref": "schema_defs.json#/$defs/requires_entry",
@@ -203,7 +239,8 @@
           "default": false,
           "description": "Whether or not the CSR is accessible via an indirect address"
         },
-        "virtual_address": true, "$comment": "Conditionally required; see below",
+        "virtual_address": true,
+        "$comment": "Conditionally required; see below",
         "priv_mode": {
           "enum": ["M", "S", "U", "VS"]
         },
@@ -229,7 +266,7 @@
           "type": "string",
           "description": "Function that returns the value of the CSR when read by software (i.e., a Zicsr instruction). If not specified, the value last written (through hw_write) is returned."
         },
-        "__source": {
+        "$source": {
           "description": "Path to the source file this definition came from; used by downstream tooling -- not expected to be in handwritten files",
           "type": "string"
         }
@@ -274,19 +311,5 @@
     }
   },
 
-  "type": "object",
-  "examples": [
-    "misa:\\n  long_name: Machine ISA Control\\n  address: 0x301\\n  priv_mode: M\\n  length: 64\\n  description: Reports the XLEN and 'major' extensions supported by the ISA.\\n  definedBy: I\\n  fields:\\n    MXL:\\n      location: 63-62\\n      description: XLEN in M-mode.\\n      type: RO\\n      value: 2\\n    Extensions:      location: 25-0\\n      description: |\\n        Indicates support for major (single letter) ISA extensions.\\n\\n        Value corresponds to A, D, F, H, I, M, S, U\\n      type: RO\\n      value: 0x1411A9"
-  ],
-  "patternProperties": {
-    "^[a-z][a-z0-9A-Z_]+$": {
-      "description": "CSR name",
-      "$ref": "#/$defs/csr_register"
-    }
-  },
-
-  "$comment": "We are using a key as the CSR name, so there should only be one property",
-  "maxProperties": 1,
-
-  "additionalProperties": false
+  "$ref": "#/$defs/csr_register"
 }
