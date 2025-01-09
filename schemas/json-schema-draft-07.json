@@ -26,8 +26,7 @@
       "type": "string"
     },
     "examples": {
-      "type": "array",
-      "items": true
+      "type": "array"
     },
     "readOnly": {
       "default": false,
@@ -61,8 +60,7 @@
     "enum": {
       "type": "array",
       "minItems": 1,
-      "uniqueItems": true,
-      "items": true
+      "uniqueItems": true
     },
     "allOf": {
       "$ref": "#/definitions/schemaArray"

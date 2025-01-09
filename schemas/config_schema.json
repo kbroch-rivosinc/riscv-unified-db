@@ -140,7 +140,6 @@
   "required": ["$schema", "kind", "type", "name", "description"],
   "properties": {
     "$schema": {
-      "type": "string",
       "const": "config_schema.json#",
       "format": "uri-reference"
     },
@@ -150,12 +149,10 @@
     },
     "type": {
       "description": "Type of the arch",
-      "type": "string",
       "enum": ["unconfigured", "partially configured", "fully configured"]
     },
     "implemented_extensions": true,
     "kind": {
-      "type": "string",
       "const": "architecture configuration"
     },
     "mandatory_extensions": true,

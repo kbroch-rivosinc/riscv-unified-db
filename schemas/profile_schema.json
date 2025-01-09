@@ -4,11 +4,9 @@
   "required": ["$schema", "kind", "name"],
   "properties": {
     "$schema": {
-      "type": "string",
       "const": "profile_schema.json#"
     },
     "kind": {
-      "type": "string",
       "const": "profile"
     },
     "name": {

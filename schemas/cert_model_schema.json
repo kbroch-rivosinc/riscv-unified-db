@@ -4,7 +4,6 @@
   "required": ["$schema", "kind", "name", "long_name"],
   "properties": {
     "$schema": {
-      "type": "string",
       "const": "cert_model_schema.json#"
     },
     "$child_of": {
@@ -60,7 +59,6 @@
     },
     "base": {
       "description": "Base of the model",
-      "type": "integer",
       "enum": [32, 64]
     },
     "class": {
@@ -157,7 +155,6 @@
       "type": "string"
     },
     "kind": {
-      "type": "string",
       "const": "certificate model"
     },
     "long_name": {

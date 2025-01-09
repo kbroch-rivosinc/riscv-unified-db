@@ -4,7 +4,6 @@
   "required": ["$schema", "kind", "name"],
   "properties": {
     "$schema": {
-      "type": "string",
       "const": "profile_class_schema.json#"
     },
     "description": {
@@ -27,7 +26,6 @@
       "type": "string"
     },
     "kind": {
-      "type": "string",
       "const": "profile class"
     },
     "marketing_name": {
@@ -44,7 +42,6 @@
     },
     "processor_kind": {
       "description": "What kind of class is this?",
-      "type": "string",
       "enum": ["Generic Unprivileged", "Microcontroller", "Apps Processor"]
     }
   },

@@ -221,15 +221,15 @@
         "definedBy"
       ],
       "properties": {
+        "requires": {
+          "description": "Extension that must be implemented for this CSR to exist",
+          "type": "string"
+        },
         "$schema": {
           "description": "Path to schema, relative to <UDB ROOT>/schemas",
           "type": "string",
           "const": "csr_schema.json#",
           "format": "uri-reference"
-        },
-        "requires": {
-          "description": "Extension that must be implemented for this CSR to exist",
-          "type": "string"
         },
         "description": {
           "oneOf": [

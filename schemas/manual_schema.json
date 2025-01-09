@@ -4,7 +4,6 @@
   "required": ["$schema", "kind", "name"],
   "properties": {
     "$schema": {
-      "type": "string",
       "const": "manual_schema.json#"
     },
     "$source": {
@@ -13,7 +12,6 @@
       "format": "uri-reference"
     },
     "kind": {
-      "type": "string",
       "const": "manual"
     },
     "license": {

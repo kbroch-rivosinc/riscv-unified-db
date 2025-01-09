@@ -13,7 +13,6 @@
   ],
   "properties": {
     "$schema": {
-      "type": "string",
       "const": "manual_version_schema.json#"
     },
     "$source": {
@@ -26,7 +25,6 @@
       "type": "string"
     },
     "kind": {
-      "type": "string",
       "const": "manual version"
     },
     "manual": {

@@ -4,7 +4,6 @@
   "required": ["$schema", "kind", "name", "long_name", "introduction"],
   "properties": {
     "$schema": {
-      "type": "string",
       "const": "cert_class_schema.json#"
     },
     "$source": {
@@ -15,7 +14,6 @@
       "type": "string"
     },
     "kind": {
-      "type": "string",
       "const": "Processor CRD"
     },
     "long_name": {
@@ -28,7 +26,6 @@
       "minItems": 1,
       "uniqueItems": true,
       "items": {
-        "type": "string",
         "enum": ["M", "S", "U", "VS", "VU"]
       }
     },
@@ -39,7 +36,6 @@
     },
     "processor_kind": {
       "description": "What kind of class is this?",
-      "type": "string",
       "enum": ["Generic Unprivileged", "Microcontroller", "Apps Processor"]
     }
   },
