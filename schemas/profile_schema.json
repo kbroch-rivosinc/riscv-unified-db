@@ -1,6 +1,5 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-
   "type": "object",
   "required": ["$schema", "kind", "name"],
   "properties": {
@@ -13,8 +12,8 @@
       "const": "profile"
     },
     "name": {
-      "type": "string",
-      "description": "Name (database key) of this Profile"
+      "description": "Name (database key) of this Profile",
+      "type": "string"
     }
   }
 }
