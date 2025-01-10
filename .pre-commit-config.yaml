@@ -72,3 +72,5 @@ repos:
     rev: v1.70.0
     hooks:
       - id: rubocop
+        additional_dependencies:
+          - rubocop-minitest
